@@ -65,13 +65,7 @@ def init_db():
     ''')
     
     # Standard-Jahrgänge hinzufügen (2020-2030)
-    for jahr in range(2020, 2031):
-        cursor.execute('INSERT OR IGNORE INTO abitur_jahrgaenge (jahrgang) VALUES (?)', (jahr,))
-    
-    # Standard-Admin erstellen (admin/admin123)
-    admin_passwort = hashlib.sha256('admin123'.encode()).hexdigest()
-    cursor.execute('INSERT OR IGNORE INTO admins (benutzername, passwort_hash) VALUES (?, ?)', 
-                   ('admin', admin_passwort))
+
     
     conn.commit()
     conn.close()
