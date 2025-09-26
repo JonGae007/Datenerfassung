@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Jahrgänge verwalten - Ehemaligen Datenerfassung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="admin-header">
+                <h1>Jahrgänge verwalten</h1>
+                <div class="admin-nav">
+                    <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Dashboard</a>
+                    <a href="{{ url_for('admin_benutzer') }}" class="nav-link">Benutzer verwalten</a>
+                    <a href="{{ url_for('home') }}" class="nav-link">Zur Hauptseite</a>
+                    <a href="{{ url_for('admin_logout') }}" class="nav-link logout">Abmelden</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nachrichten anzeigen -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <main>
+            <!-- Neuen Jahrgang hinzufügen -->
+            <div class="add-jahrgang-section">
+                <h2>Neuen Jahrgang hinzufügen</h2>
+                <form method="POST" action="{{ url_for('admin_add_jahrgang') }}" class="add-jahrgang-form">
+                    <div class="form-inline">
+                        <input type="number" name="jahrgang" placeholder="z.B. 2024" 
+                               min="1900" max="2100" required class="jahrgang-input">
+                        <button type="submit" class="add-btn">Hinzufügen</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Jahrgänge Tabelle -->
+            <div class="jahrgaenge-section">
+                <h2>Vorhandene Jahrgänge</h2>
+                
+                {% if jahrgaenge %}
+                    <div class="table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Jahrgang</th>
+                                    <th>Status</th>
+                                    <th>Registrierte Schüler</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for jahrgang in jahrgaenge %}
+                                <tr class="{{ 'inactive' if not jahrgang.aktiv else '' }}">
+                                    <td class="jahrgang-year">{{ jahrgang.jahrgang }}</td>
+                                    <td>
+                                        <span class="status-badge {{ 'active' if jahrgang.aktiv else 'inactive' }}">
+                                            {{ 'Aktiv' if jahrgang.aktiv else 'Inaktiv' }}
+                                        </span>
+                                    </td>
+                                    <td class="student-count">
+                                        {{ jahrgang.schueler_anzahl }}
+                                    </td>
+                                    <td class="actions">
+                                        {% if jahrgang.schueler_anzahl > 0 %}
+                                        <a href="{{ url_for('admin_export_csv_jahrgang', jahrgang_id=jahrgang.id) }}" 
+                                           class="export-btn-small">
+                                            CSV
+                                        </a>
+                                        {% endif %}
+                                        <a href="{{ url_for('admin_toggle_jahrgang', jahrgang_id=jahrgang.id) }}" 
+                                           class="toggle-btn {{ 'deactivate' if jahrgang.aktiv else 'activate' }}">
+                                            {{ 'Deaktivieren' if jahrgang.aktiv else 'Aktivieren' }}
+                                        </a>
+                                        <a href="{{ url_for('admin_delete_jahrgang', jahrgang_id=jahrgang.id) }}" 
+                                           class="delete-btn"
+                                           onclick="return confirm('Sind Sie sicher, dass Sie den Jahrgang {{ jahrgang.jahrgang }} löschen möchten?')">
+                                            Löschen
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="no-data">
+                        <p>Noch keine Jahrgänge vorhanden.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+</body>
+</html>

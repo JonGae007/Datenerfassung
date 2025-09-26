@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Login - Ehemaligen Datenerfassung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Admin-Bereich</h1>
+            <p>Bitte melden Sie sich an, um auf die Verwaltung zuzugreifen.</p>
+        </header>
+
+        <!-- Nachrichten anzeigen -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <main>
+            <form method="POST" action="{{ url_for('admin_login_post') }}" class="login-form">
+                <div class="form-group">
+                    <label for="benutzername">Benutzername:</label>
+                    <input type="text" name="benutzername" id="benutzername" required 
+                           placeholder="Admin-Benutzername">
+                </div>
+
+                <div class="form-group">
+                    <label for="passwort">Passwort:</label>
+                    <input type="password" name="passwort" id="passwort" required 
+                           placeholder="Admin-Passwort">
+                </div>
+
+                <button type="submit" class="submit-btn">Anmelden</button>
+            </form>
+
+            <div class="login-info">
+                <p><strong>Standard-Anmeldedaten:</strong></p>
+                <p>Benutzername: <code>admin</code></p>
+                <p>Passwort: <code>admin123</code></p>
+            </div>
+        </main>
+
+        <footer>
+            <p><a href="{{ url_for('home') }}">Zurück zur Hauptseite</a></p>
+        </footer>
+    </div>
+</body>
+</html>

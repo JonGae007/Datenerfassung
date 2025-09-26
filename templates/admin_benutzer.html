@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Benutzer verwalten - Ehemaligen Datenerfassung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="admin-header">
+                <h1>Benutzer verwalten</h1>
+                <div class="admin-nav">
+                    <a href="{{ url_for('admin_dashboard') }}" class="nav-link">Dashboard</a>
+                    <a href="{{ url_for('admin_jahrgaenge') }}" class="nav-link">Jahrgänge verwalten</a>
+                    <a href="{{ url_for('home') }}" class="nav-link">Zur Hauptseite</a>
+                    <a href="{{ url_for('admin_logout') }}" class="nav-link logout">Abmelden</a>
+                </div>
+            </div>
+        </header>
+
+        <!-- Nachrichten anzeigen -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <main>
+            <!-- Neuen Benutzer hinzufügen -->
+            <div class="add-user-section">
+                <h2>Neuen Admin-Benutzer hinzufügen</h2>
+                <form method="POST" action="{{ url_for('admin_add_benutzer') }}" class="user-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="benutzername">Benutzername:</label>
+                            <input type="text" name="benutzername" id="benutzername" required 
+                                   placeholder="Mindestens 3 Zeichen" autocomplete="username">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="passwort">Passwort:</label>
+                            <input type="password" name="passwort" id="passwort" required 
+                                   placeholder="Mindestens 6 Zeichen" autocomplete="new-password">
+                        </div>
+                        <div class="form-group">
+                            <label for="passwort_wiederholen">Passwort wiederholen:</label>
+                            <input type="password" name="passwort_wiederholen" id="passwort_wiederholen" required 
+                                   placeholder="Passwort bestätigen" autocomplete="new-password">
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn">Benutzer erstellen</button>
+                </form>
+            </div>
+
+            <!-- Vorhandene Benutzer -->
+            <div class="users-section">
+                <h2>Vorhandene Admin-Benutzer</h2>
+                
+                {% if benutzer %}
+                    <div class="table-container">
+                        <div class="table-wrapper">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Benutzername</th>
+                                        <th>Aktionen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for benutzer_eintrag in benutzer %}
+                                    <tr>
+                                        <td class="username">{{ benutzer_eintrag.benutzername }}</td>
+                                        <td class="actions">
+                                            <button onclick="showPasswordForm({{ benutzer_eintrag.id }}, '{{ benutzer_eintrag.benutzername }}')" 
+                                                    class="change-password-btn">
+                                                Passwort ändern
+                                            </button>
+                                            {% if benutzer|length > 1 and benutzer_eintrag.id != session.get('admin_id') %}
+                                            <a href="{{ url_for('admin_delete_benutzer', benutzer_id=benutzer_eintrag.id) }}" 
+                                               class="delete-btn"
+                                               onclick="return confirm('Sind Sie sicher, dass Sie den Benutzer {{ benutzer_eintrag.benutzername }} löschen möchten?')">
+                                                Löschen
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="no-data">
+                        <p>Keine Benutzer gefunden.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Passwort ändern Modal -->
+            <div id="passwordModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Passwort ändern</h3>
+                        <button onclick="hidePasswordForm()" class="close-btn">&times;</button>
+                    </div>
+                    <form method="POST" action="{{ url_for('admin_change_password') }}" class="password-form">
+                        <input type="hidden" name="benutzer_id" id="modal_benutzer_id">
+                        
+                        <div class="form-group">
+                            <label for="altes_passwort">Aktuelles Passwort:</label>
+                            <input type="password" name="altes_passwort" id="altes_passwort" required 
+                                   placeholder="Ihr aktuelles Passwort" autocomplete="current-password">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="neues_passwort">Neues Passwort:</label>
+                            <input type="password" name="neues_passwort" id="neues_passwort" required 
+                                   placeholder="Mindestens 6 Zeichen" autocomplete="new-password">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="neues_passwort_wiederholen">Neues Passwort wiederholen:</label>
+                            <input type="password" name="neues_passwort_wiederholen" id="neues_passwort_wiederholen" required 
+                                   placeholder="Neues Passwort bestätigen" autocomplete="new-password">
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" onclick="hidePasswordForm()" class="cancel-btn">Abbrechen</button>
+                            <button type="submit" class="submit-btn">Passwort ändern</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function showPasswordForm(benutzerId, benutzername) {
+            document.getElementById('modal_benutzer_id').value = benutzerId;
+            document.querySelector('.modal-header h3').textContent = 'Passwort ändern für: ' + benutzername;
+            document.getElementById('passwordModal').style.display = 'flex';
+            document.getElementById('altes_passwort').focus();
+        }
+
+        function hidePasswordForm() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.querySelector('.password-form').reset();
+        }
+
+        // Modal schließen bei Klick außerhalb
+        document.getElementById('passwordModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hidePasswordForm();
+            }
+        });
+
+        // ESC-Taste zum Schließen
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hidePasswordForm();
+            }
+        });
+    </script>
+</body>
+</html>
